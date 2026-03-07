@@ -50,11 +50,15 @@ def fetch_recent_entries(
     since_utc: datetime,
     until_utc: datetime,
     max_items_per_feed: int,
+    user_agent: str,
 ) -> list[FeedEntry]:
     output: list[FeedEntry] = []
     for subscription in subscriptions:
         try:
-            parsed = feedparser.parse(subscription.xml_url)
+            parsed = feedparser.parse(
+                subscription.xml_url,
+                request_headers={"User-Agent": user_agent},
+            )
         except Exception as exc:  # noqa: BLE001
             logging.warning("Failed to fetch feed %s: %s", subscription.xml_url, exc)
             continue

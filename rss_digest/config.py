@@ -27,6 +27,7 @@ class AppConfig:
     digest_window_days: int
     request_timeout_seconds: int
     max_items_per_feed: int
+    feed_user_agent: str
     smtp_host: str
     smtp_port: int
     smtp_user: str
@@ -48,6 +49,14 @@ class AppConfig:
             digest_window_days=_as_int("DIGEST_WINDOW_DAYS", 7),
             request_timeout_seconds=_as_int("REQUEST_TIMEOUT_SECONDS", 45),
             max_items_per_feed=_as_int("MAX_ITEMS_PER_FEED", 20),
+            feed_user_agent=os.getenv(
+                "FEED_USER_AGENT",
+                (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/122.0.0.0 Safari/537.36"
+                ),
+            ).strip(),
             smtp_host=os.getenv("GMAIL_SMTP_HOST", "smtp.gmail.com").strip(),
             smtp_port=_as_int("GMAIL_SMTP_PORT", 587),
             smtp_user=smtp_user,

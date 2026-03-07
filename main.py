@@ -52,6 +52,7 @@ def main() -> None:
         since_utc=since_utc,
         until_utc=now_utc,
         max_items_per_feed=config.max_items_per_feed,
+        user_agent=config.feed_user_agent,
     )
     logging.info("Fetched %s feed entries in range", len(entries))
 

@@ -22,6 +22,7 @@ This project reads RSS sources from an OPML file, fetches updates for the last 7
 
 - `main.py` - CLI entrypoint.
 - `rss_digest/opml_parser.py` - OPML parser.
+- `rss_digest/xml_parsers.py` - XML parser strategy classes (default/YouTube/Bilibili).
 - `rss_digest/feed_fetcher.py` - fetch + time filtering.
 - `rss_digest/model_router.py` - category-based model selection.
 - `rss_digest/openrouter_client.py` - OpenRouter chat completions client.
@@ -51,6 +52,7 @@ Useful defaults:
 - `DIGEST_WINDOW_DAYS=7`
 - `MODEL_TEXT_DEFAULT=openai/gpt-4o-mini`
 - `MODEL_VIDEO_DEFAULT=google/gemini-1.5-flash`
+- `FEED_USER_AGENT=<Chrome UA string>`
 
 ## Run Locally
 
@@ -109,3 +111,12 @@ Set these repository secrets:
   - The app logs warning and continues processing other feeds.
 - No updates found:
   - Report still generated with a `No updates` section.
+
+## XML Parser Modularization
+
+- `parse_opml` handles OPML traversal and metadata extraction only.
+- Site-specific URL handling is delegated to parser strategies in `rss_digest/xml_parsers.py`.
+- Current strategies:
+  - `YouTubeXMLParser`: resolves `@handle` and channel URLs to official YouTube RSS.
+  - `BilibiliXMLParser`: currently no-op/default behavior (placeholder for future logic).
+  - `DefaultXMLParser`: keeps original `xmlUrl`.

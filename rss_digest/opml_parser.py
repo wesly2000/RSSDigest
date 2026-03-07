@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 from rss_digest.types import FeedSubscription
+from rss_digest.xml_parsers import FeedResolveContext, XMLParserRegistry
 
 
 def _extract_author(raw_text: str) -> str:
@@ -27,6 +28,7 @@ def parse_opml(opml_path: Path) -> List[FeedSubscription]:
         return []
 
     subscriptions: list[FeedSubscription] = []
+    parser_registry = XMLParserRegistry()
     for category_node in body.findall("outline"):
         category = (category_node.attrib.get("text") or "Uncategorized").strip()
         for topic_node in category_node.findall("outline"):
@@ -42,12 +44,21 @@ def parse_opml(opml_path: Path) -> List[FeedSubscription]:
                 ).strip()
                 author = _extract_author(raw_name) or "Unknown Author"
                 html_url = (feed_node.attrib.get("htmlUrl") or "").strip()
+                resolved_xml_url = parser_registry.resolve(
+                    FeedResolveContext(
+                        xml_url=xml_url,
+                        html_url=html_url,
+                        category=category or "Uncategorized",
+                        topic=topic or "General",
+                        author=author,
+                    )
+                )
                 subscriptions.append(
                     FeedSubscription(
                         category=category or "Uncategorized",
                         topic=topic or "General",
                         author=author,
-                        xml_url=xml_url,
+                        xml_url=resolved_xml_url,
                         html_url=html_url,
                     )
                 )
