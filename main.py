@@ -53,6 +53,7 @@ def main() -> None:
         until_utc=now_utc,
         max_items_per_feed=config.max_items_per_feed,
         user_agent=config.feed_user_agent,
+        bilibili_cookie=config.bilibili_cookie,
     )
     logging.info("Fetched %s feed entries in range", len(entries))
 

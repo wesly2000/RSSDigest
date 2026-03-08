@@ -22,8 +22,11 @@ class OpenRouterClient:
                 {
                     "role": "system",
                     "content": (
-                        "You summarize RSS entries for a weekly digest. "
-                        "Return only a concise digest paragraph under 120 words."
+                        "You summarize RSS entries for a weekly digest.\n"
+                        "First infer the dominant language of the source content "
+                        "(from title and content excerpt).\n"
+                        "Then write the digest in that same language.\n"
+                        "Return only one concise digest paragraph under 120 words."
                     ),
                 },
                 {"role": "user", "content": prompt},

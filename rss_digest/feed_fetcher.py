@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from time import struct_time
 from typing import Iterable
+from urllib.parse import urlparse
 
 import feedparser
 
@@ -45,19 +46,30 @@ def _extract_content(entry: feedparser.FeedParserDict) -> str:
     return ""
 
 
+def _is_bilibili_feed_url(url: str) -> bool:
+    parsed = urlparse(url)
+    host = parsed.netloc.lower()
+    path = parsed.path.lower()
+    return "bilibili" in host or "/bilibili/" in path
+
+
 def fetch_recent_entries(
     subscriptions: Iterable[FeedSubscription],
     since_utc: datetime,
     until_utc: datetime,
     max_items_per_feed: int,
     user_agent: str,
+    bilibili_cookie: str = "",
 ) -> list[FeedEntry]:
     output: list[FeedEntry] = []
     for subscription in subscriptions:
+        headers = {"User-Agent": user_agent}
+        if bilibili_cookie and _is_bilibili_feed_url(subscription.xml_url):
+            headers["Cookie"] = bilibili_cookie
         try:
             parsed = feedparser.parse(
                 subscription.xml_url,
-                request_headers={"User-Agent": user_agent},
+                request_headers=headers,
             )
         except Exception as exc:  # noqa: BLE001
             logging.warning("Failed to fetch feed %s: %s", subscription.xml_url, exc)

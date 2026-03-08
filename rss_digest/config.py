@@ -28,6 +28,7 @@ class AppConfig:
     request_timeout_seconds: int
     max_items_per_feed: int
     feed_user_agent: str
+    bilibili_cookie: str
     smtp_host: str
     smtp_port: int
     smtp_user: str
@@ -57,6 +58,7 @@ class AppConfig:
                     "Chrome/122.0.0.0 Safari/537.36"
                 ),
             ).strip(),
+            bilibili_cookie=os.getenv("BILIBILI_COOKIE", "").strip(),
             smtp_host=os.getenv("GMAIL_SMTP_HOST", "smtp.gmail.com").strip(),
             smtp_port=_as_int("GMAIL_SMTP_PORT", 587),
             smtp_user=smtp_user,

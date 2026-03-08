@@ -14,7 +14,8 @@ This project reads RSS sources from an OPML file, fetches updates for the last 7
   - `Videos` (and audio-like categories) -> video/multimodal model.
   - all other categories -> default text model.
 - Output digest report in Markdown with this per-item format:
-  - `[title][digest][author][category][topic][url]`
+  - `[title][digest][author][date][category][topic][url]` (date format: `YYYY-MM-DD`)
+- Digest language follows the dominant language of each source item (for example, Chinese source -> Chinese digest, English source -> English digest).
 - Send report via Gmail SMTP (App Password).
 - Run automatically in GitHub Actions every Saturday at 08:00 UTC.
 
@@ -53,6 +54,7 @@ Useful defaults:
 - `MODEL_TEXT_DEFAULT=openai/gpt-4o-mini`
 - `MODEL_VIDEO_DEFAULT=google/gemini-1.5-flash`
 - `FEED_USER_AGENT=<Chrome UA string>`
+- `BILIBILI_COOKIE=<optional cookie string for RSSHub BiliBili routes>`
 
 ## Run Locally
 
@@ -90,6 +92,7 @@ Set these repository secrets:
 - `MODEL_TEXT_DEFAULT` (optional)
 - `MODEL_VIDEO_DEFAULT` (optional)
 - `DIGEST_WINDOW_DAYS` (optional)
+- `BILIBILI_COOKIE` (optional, recommended if BiliBili routes are blocked)
 - `GMAIL_SMTP_HOST` (optional, usually `smtp.gmail.com`)
 - `GMAIL_SMTP_PORT` (optional, usually `587`)
 - `GMAIL_SMTP_USER`
@@ -109,8 +112,15 @@ Set these repository secrets:
   - The app raises a clear error listing required variables.
 - Some feeds fail:
   - The app logs warning and continues processing other feeds.
+  - For BiliBili/RSSHub routes, set `BILIBILI_COOKIE` in `.env` or GitHub secret to provide authenticated context.
 - No updates found:
   - Report still generated with a `No updates` section.
+
+## BiliBili Cookie Notes
+
+- `BILIBILI_COOKIE` is optional and only attached to BiliBili-related feed requests.
+- Keep this value secret; never commit it into the repository.
+- Use local `.env` for development and GitHub Actions encrypted secrets for automation.
 
 ## XML Parser Modularization
 
