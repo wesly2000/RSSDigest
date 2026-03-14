@@ -30,6 +30,7 @@ jobs:
           MODEL_VIDEO_DEFAULT: ${{ secrets.MODEL_VIDEO_DEFAULT }}
           DIGEST_WINDOW_DAYS: ${{ secrets.DIGEST_WINDOW_DAYS }}
           FEED_USER_AGENT: ${{ secrets.FEED_USER_AGENT }}
+          BILIBILI_UID: ${{ secrets.BILIBILI_UID }}
           BILIBILI_COOKIE: ${{ secrets.BILIBILI_COOKIE }}
           GMAIL_SMTP_HOST: ${{ secrets.GMAIL_SMTP_HOST }}
           GMAIL_SMTP_PORT: ${{ secrets.GMAIL_SMTP_PORT }}

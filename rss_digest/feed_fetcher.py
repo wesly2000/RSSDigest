@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from time import struct_time
@@ -10,6 +11,14 @@ from urllib.parse import urlparse
 import feedparser
 
 from rss_digest.types import FeedEntry, FeedSubscription
+
+
+@dataclass(frozen=True)
+class FeedCheckResult:
+    xml_url: str
+    status: int | None
+    total_entries: int
+    entries_in_window: int
 
 
 def _parse_entry_datetime(entry: feedparser.FeedParserDict) -> datetime | None:
@@ -94,3 +103,51 @@ def fetch_recent_entries(
             )
     output.sort(key=lambda item: item.published_at, reverse=True)
     return output
+
+
+def check_feed_availability(
+    subscriptions: Iterable[FeedSubscription],
+    since_utc: datetime,
+    until_utc: datetime,
+    user_agent: str,
+    bilibili_cookie: str = "",
+) -> list[FeedCheckResult]:
+    checks: list[FeedCheckResult] = []
+    for subscription in subscriptions:
+        headers = {"User-Agent": user_agent}
+        if bilibili_cookie and _is_bilibili_feed_url(subscription.xml_url):
+            headers["Cookie"] = bilibili_cookie
+
+        try:
+            parsed = feedparser.parse(
+                subscription.xml_url,
+                request_headers=headers,
+            )
+        except Exception:  # noqa: BLE001
+            checks.append(
+                FeedCheckResult(
+                    xml_url=subscription.xml_url,
+                    status=None,
+                    total_entries=0,
+                    entries_in_window=0,
+                )
+            )
+            continue
+
+        in_window = 0
+        for entry in parsed.entries:
+            published_at = _parse_entry_datetime(entry)
+            if not published_at:
+                continue
+            if since_utc <= published_at <= until_utc:
+                in_window += 1
+
+        checks.append(
+            FeedCheckResult(
+                xml_url=subscription.xml_url,
+                status=parsed.get("status"),
+                total_entries=len(parsed.entries),
+                entries_in_window=in_window,
+            )
+        )
+    return checks

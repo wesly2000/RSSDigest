@@ -54,7 +54,9 @@ Useful defaults:
 - `MODEL_TEXT_DEFAULT=openai/gpt-4o-mini`
 - `MODEL_VIDEO_DEFAULT=google/gemini-1.5-flash`
 - `FEED_USER_AGENT=<Chrome UA string>`
-- `BILIBILI_COOKIE=<optional cookie string for RSSHub BiliBili routes>`
+- `BILIBILI_UID=<optional uid used for uid-scoped cookie lookup>`
+- `BILIBILI_COOKIE=<optional fallback cookie string for RSSHub BiliBili routes>`
+- `BILIBILI_COOKIE_{uid}=<preferred uid-scoped cookie, e.g. BILIBILI_COOKIE_438767999>`
 
 ## Run Locally
 
@@ -76,6 +78,12 @@ Optional override window:
 python main.py --opml follow.opml --window-days 7 --output reports/latest_digest.md
 ```
 
+Feed availability check only (no model calls, no email):
+
+```powershell
+python main.py --opml follow.opml --check-feeds-only
+```
+
 ## GitHub Actions Automation
 
 Workflow file: `.github/workflows/weekly-digest.yml`
@@ -92,6 +100,7 @@ Set these repository secrets:
 - `MODEL_TEXT_DEFAULT` (optional)
 - `MODEL_VIDEO_DEFAULT` (optional)
 - `DIGEST_WINDOW_DAYS` (optional)
+- `BILIBILI_UID` (optional, when using uid-scoped cookie keys)
 - `BILIBILI_COOKIE` (optional, recommended if BiliBili routes are blocked)
 - `GMAIL_SMTP_HOST` (optional, usually `smtp.gmail.com`)
 - `GMAIL_SMTP_PORT` (optional, usually `587`)
@@ -112,13 +121,15 @@ Set these repository secrets:
   - The app raises a clear error listing required variables.
 - Some feeds fail:
   - The app logs warning and continues processing other feeds.
-  - For BiliBili/RSSHub routes, set `BILIBILI_COOKIE` in `.env` or GitHub secret to provide authenticated context.
+  - For BiliBili/RSSHub routes, set `BILIBILI_UID` + `BILIBILI_COOKIE_{uid}` (preferred) or fallback `BILIBILI_COOKIE`.
 - No updates found:
   - Report still generated with a `No updates` section.
 
 ## BiliBili Cookie Notes
 
-- `BILIBILI_COOKIE` is optional and only attached to BiliBili-related feed requests.
+- `BILIBILI_COOKIE_{uid}` is used first when `BILIBILI_UID` is set.
+- If uid-scoped key is absent, fallback `BILIBILI_COOKIE` is used.
+- Cookie is only attached to BiliBili-related feed requests.
 - Keep this value secret; never commit it into the repository.
 - Use local `.env` for development and GitHub Actions encrypted secrets for automation.
 

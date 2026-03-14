@@ -18,6 +18,15 @@ def _as_bool(env_name: str, default: bool) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _resolve_bilibili_cookie(uid: str) -> str:
+    if uid:
+        uid_key = f"BILIBILI_COOKIE_{uid}"
+        uid_cookie = os.getenv(uid_key, "").strip()
+        if uid_cookie:
+            return uid_cookie
+    return os.getenv("BILIBILI_COOKIE", "").strip()
+
+
 @dataclass(frozen=True)
 class AppConfig:
     openrouter_api_key: str
@@ -28,6 +37,7 @@ class AppConfig:
     request_timeout_seconds: int
     max_items_per_feed: int
     feed_user_agent: str
+    bilibili_uid: str
     bilibili_cookie: str
     smtp_host: str
     smtp_port: int
@@ -58,7 +68,8 @@ class AppConfig:
                     "Chrome/122.0.0.0 Safari/537.36"
                 ),
             ).strip(),
-            bilibili_cookie=os.getenv("BILIBILI_COOKIE", "").strip(),
+            bilibili_uid=os.getenv("BILIBILI_UID", "").strip(),
+            bilibili_cookie=_resolve_bilibili_cookie(os.getenv("BILIBILI_UID", "").strip()),
             smtp_host=os.getenv("GMAIL_SMTP_HOST", "smtp.gmail.com").strip(),
             smtp_port=_as_int("GMAIL_SMTP_PORT", 587),
             smtp_user=smtp_user,
@@ -68,12 +79,12 @@ class AppConfig:
             dry_run=dry_run,
         )
 
-    def validate(self) -> None:
+    def validate(self, require_openrouter: bool = True, require_email: bool = True) -> None:
         missing = []
-        if not self.openrouter_api_key:
+        if require_openrouter and not self.openrouter_api_key:
             missing.append("OPENROUTER_API_KEY")
 
-        if not self.dry_run:
+        if require_email and not self.dry_run:
             if not self.smtp_user:
                 missing.append("GMAIL_SMTP_USER")
             if not self.smtp_app_password:
