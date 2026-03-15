@@ -14,8 +14,8 @@ class OpenRouterClient:
         self._config = config
         self._endpoint = f"{config.openrouter_base_url.rstrip('/')}/chat/completions"
 
-    def summarize(self, entry: FeedEntry, model: str) -> str:
-        prompt = self._build_prompt(entry)
+    def summarize(self, entry: FeedEntry, model: str, subtitle_text: str | None = None) -> str:
+        prompt = self._build_prompt(entry, subtitle_text=subtitle_text)
         payload = {
             "model": model,
             "messages": [
@@ -57,8 +57,11 @@ class OpenRouterClient:
             return "Digest unavailable due to model/API error."
 
     @staticmethod
-    def _build_prompt(entry: FeedEntry) -> str:
+    def _build_prompt(entry: FeedEntry, subtitle_text: str | None = None) -> str:
         content_preview = entry.content[:4000]
+        subtitle_preview = (subtitle_text or "").strip()[:12000]
+        body_label = "Video subtitle transcript" if subtitle_preview else "Content excerpt"
+        body_content = subtitle_preview if subtitle_preview else content_preview
         return (
             f"Title: {entry.title}\n"
             f"URL: {entry.url}\n"
@@ -66,6 +69,6 @@ class OpenRouterClient:
             f"Category: {entry.subscription.category}\n"
             f"Topic: {entry.subscription.topic}\n"
             f"Published UTC: {entry.published_at.isoformat()}\n\n"
-            "Content excerpt:\n"
-            f"{content_preview}"
+            f"{body_label}:\n"
+            f"{body_content}"
         )

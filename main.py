@@ -15,6 +15,7 @@ from rss_digest.model_router import select_model_for_entry
 from rss_digest.openrouter_client import OpenRouterClient
 from rss_digest.opml_parser import parse_opml
 from rss_digest.report_renderer import render_markdown
+from rss_digest.subtitle_extractors import SubtitleExtractorRegistry
 from rss_digest.types import DigestItem
 
 
@@ -91,11 +92,23 @@ def main() -> None:
     logging.info("Fetched %s feed entries in range", len(entries))
 
     client = OpenRouterClient(config)
+    subtitle_registry = SubtitleExtractorRegistry()
+    video_like_categories = {"videos", "video", "audios", "audio", "podcast", "podcasts"}
     digests: list[DigestItem] = []
     for entry in entries:
+        subtitle_text: str | None = None
         model, reason = select_model_for_entry(entry, config)
+        category = entry.subscription.category.strip().lower()
+        if category in video_like_categories:
+            subtitle_text = subtitle_registry.extract_subtitle(entry.url)
+            if subtitle_text:
+                model = config.model_text_default
+                reason = "video/audio subtitles detected, using text model"
+                logging.info("Subtitle hit for '%s'; switching to text model", entry.title)
+            else:
+                logging.info("Subtitle miss for '%s'; keeping model routing fallback", entry.title)
         logging.info("Summarizing '%s' with model '%s' (%s)", entry.title, model, reason)
-        digest_text = client.summarize(entry, model=model)
+        digest_text = client.summarize(entry, model=model, subtitle_text=subtitle_text)
         digests.append(
             DigestItem(
                 title=entry.title,

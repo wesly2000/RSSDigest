@@ -11,7 +11,9 @@ This project reads RSS sources from an OPML file, fetches updates for the last 7
   - `topic`
   - `url`
 - Route model by category:
-  - `Videos` (and audio-like categories) -> video/multimodal model.
+  - `Videos` (and audio-like categories) -> try subtitle extraction first.
+  - subtitle found -> summarize subtitle with default text model.
+  - subtitle unavailable -> fallback to video/multimodal model.
   - all other categories -> default text model.
 - Output digest report in Markdown with this per-item format:
   - `[title][digest][author][date][category][topic][url]` (date format: `YYYY-MM-DD`)
@@ -24,6 +26,7 @@ This project reads RSS sources from an OPML file, fetches updates for the last 7
 - `main.py` - CLI entrypoint.
 - `rss_digest/opml_parser.py` - OPML parser.
 - `rss_digest/xml_parsers.py` - XML parser strategy classes (default/YouTube/Bilibili).
+- `rss_digest/subtitle_extractors.py` - subtitle extractor strategy classes (YouTube/Bilibili/Netflix).
 - `rss_digest/feed_fetcher.py` - fetch + time filtering.
 - `rss_digest/model_router.py` - category-based model selection.
 - `rss_digest/openrouter_client.py` - OpenRouter chat completions client.
@@ -57,6 +60,10 @@ Useful defaults:
 - `BILIBILI_UID=<optional uid used for uid-scoped cookie lookup>`
 - `BILIBILI_COOKIE=<optional fallback cookie string for RSSHub BiliBili routes>`
 - `BILIBILI_COOKIE_{uid}=<preferred uid-scoped cookie, e.g. BILIBILI_COOKIE_438767999>`
+
+Dependency note:
+
+- `youtube-transcript-api` is used for YouTube subtitle extraction.
 
 ## Run Locally
 
@@ -122,6 +129,9 @@ Set these repository secrets:
 - Some feeds fail:
   - The app logs warning and continues processing other feeds.
   - For BiliBili/RSSHub routes, set `BILIBILI_UID` + `BILIBILI_COOKIE_{uid}` (preferred) or fallback `BILIBILI_COOKIE`.
+- Subtitles unavailable for video items:
+  - The app falls back to `MODEL_VIDEO_DEFAULT` for that item.
+  - Subtitle extraction failures are non-fatal and only impact per-item routing.
 - No updates found:
   - Report still generated with a `No updates` section.
 
