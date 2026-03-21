@@ -4,6 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from urllib.parse import parse_qs, urlparse
 
+from typing import Optional
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import (
     CouldNotRetrieveTranscript,
@@ -24,8 +25,9 @@ class SubtitleExtractor(ABC):
 
 
 class YouTubeSubtitleExtractor(SubtitleExtractor):
-    def __init__(self) -> None:
+    def __init__(self, languages: Optional[list[str]] = ["en", "zh-Hant", "zh-Hans", ]) -> None:
         self._client = YouTubeTranscriptApi()
+        self._languages = languages
 
     def can_handle(self, url: str) -> bool:
         host = urlparse(url or "").netloc.lower()
@@ -37,7 +39,7 @@ class YouTubeSubtitleExtractor(SubtitleExtractor):
             return None
 
         try:
-            transcript_items = self._client.fetch(video_id)
+            transcript_items = self._client.fetch(video_id, languages=self._languages)
         except (
             NoTranscriptFound,
             TranscriptsDisabled,
