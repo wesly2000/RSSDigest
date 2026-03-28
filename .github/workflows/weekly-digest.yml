@@ -22,6 +22,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Rebuild OPML file from secret
+        env:
+          OPML_BASE64: ${{ secrets.OPML_BASE64 }}
+        run: |
+          if [ -z "$OPML_BASE64" ]; then
+            echo "OPML_BASE64 secret is not set."
+            exit 1
+          fi
+          printf '%s' "$OPML_BASE64" | base64 --decode > follow.opml
+
       - name: Generate and send digest
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
